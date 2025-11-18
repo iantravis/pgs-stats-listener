@@ -4,6 +4,17 @@ const cheerio = require('cheerio');
 
 const app = express();
 
+// Simple CORS middleware
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // or your domain instead of *
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.get('/pgs-stats', async (req, res) => {
   try {
     const response = await fetch('https://premiumgolfsuites.com.au/', {
