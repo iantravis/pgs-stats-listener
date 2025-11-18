@@ -1,18 +1,24 @@
 // server.js
 const express = require('express');
+const cors = require('cors');
 const cheerio = require('cheerio');
 
 const app = express();
 
-// Simple CORS middleware
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*'); // or your domain instead of *
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
+/**
+ * CORS – allow your Shopify storefront to call this API
+ * For now we allow all origins ("*"). If you want to be strict,
+ * replace "*" with "https://turfgroupaustralia.com.au" (or your actual domain).
+ */
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
+
+// Simple health check (optional)
+app.get('/', (req, res) => {
+  res.send('PGS stats listener is running');
 });
 
 app.get('/pgs-stats', async (req, res) => {
@@ -36,7 +42,7 @@ app.get('/pgs-stats', async (req, res) => {
       users: null
     };
 
-    // Find each counter + match by its title
+    // Parse each counter by its title
     $('.ecom__element.element__counter').each((_, el) => {
       const title = $(el).find('.element__counter--title').text().trim();
       const numEl = $(el).find('.element__counter--number');
@@ -67,6 +73,7 @@ app.get('/pgs-stats', async (req, res) => {
   }
 });
 
+// Render will set PORT in env
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('PGS stats listener running on port ' + PORT);
